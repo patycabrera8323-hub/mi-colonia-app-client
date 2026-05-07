@@ -1,0 +1,417 @@
+import { useState, useEffect, useMemo } from 'react';
+import { 
+  ShoppingBag, 
+  X 
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  collection, 
+  query, 
+  onSnapshot, 
+  getDocs, 
+  doc, 
+  limit,
+  addDoc,
+  serverTimestamp,
+  updateDoc,
+  increment
+} from 'firebase/firestore';
+import { db, auth } from './lib/firebase';
+import { Business, Product, Category, CartItem, Review } from './types';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { toast } from 'sonner';
+
+// Components
+import { Header } from './components/Header';
+import { CategoryFilter } from './components/CategoryFilter';
+import { BusinessCard } from './components/BusinessCard';
+import { BusinessOverlay } from './components/BusinessOverlay';
+import { CheckoutPanel } from './components/CheckoutPanel';
+
+export default function App() {
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<Category>('Todos');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [adminClickCount, setAdminClickCount] = useState(0);
+  const [isAdminModeActive, setIsAdminModeActive] = useState(false);
+
+  // Auth listener
+  useEffect(() => {
+    return auth.onAuthStateChanged((u) => {
+      setUser(u);
+      // Reset admin mode on logout
+      if (!u) setIsAdminModeActive(false);
+    });
+  }, []);
+
+  const handleTitleClick = () => {
+    if (user?.email !== 'jicr110@gmail.com') return;
+    
+    setAdminClickCount(prev => {
+      if (prev + 1 >= 5) {
+        setIsAdminModeActive(!isAdminModeActive);
+        toast.info(isAdminModeActive ? 'Modo Administrador desactivado' : 'Modo Administrador activado');
+        return 0;
+      }
+      return prev + 1;
+    });
+  };
+
+  // Fetch businesses
+  useEffect(() => {
+    setIsLoading(true);
+    
+    // PRODUCTION IMPROVEMENT (Point 2): Only show verified businesses to public
+    let q = query(collection(db, 'businesses'));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      let bizData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Business));
+      
+      // Filter logic: Hide businesses with "Admin" in name unless Admin Mode is active
+      if (!isAdminModeActive) {
+        bizData = bizData.filter(b => 
+          !(b.name || '').toLowerCase().includes('admin')
+        );
+      }
+
+      setBusinesses(bizData);
+      setIsLoading(false);
+      setErrorDetails(null);
+    }, (error) => {
+      console.error("Error al cargar negocios:", error);
+      setErrorDetails(`Error al leer negocios: ${error.message}.`);
+      setIsLoading(false);
+    });
+    return () => unsubscribe();
+  }, [user, isAdminModeActive]);
+
+  // Fetch products and reviews when business is selected
+  useEffect(() => {
+    if (!selectedBusiness) {
+      setProducts([]);
+      setReviews([]);
+      return;
+    }
+
+    const productsRef = collection(db, 'businesses', selectedBusiness.id, 'products');
+    const unsubProducts = onSnapshot(productsRef, (snapshot) => {
+      const prodData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+      setProducts(prodData);
+    }, (error) => {
+      console.error(error);
+    });
+
+    const reviewsRef = query(
+      collection(db, 'businesses', selectedBusiness.id, 'reviews')
+    );
+    const unsubReviews = onSnapshot(reviewsRef, (snapshot) => {
+      const reviewData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Review));
+      const sorted = reviewData.sort((a, b) => {
+        const dateA = a.createdAt?.seconds || 0;
+        const dateB = b.createdAt?.seconds || 0;
+        return dateB - dateA;
+      });
+      setReviews(sorted);
+    }, (error) => {
+      console.error(error);
+    });
+
+    return () => {
+      unsubProducts();
+      unsubReviews();
+    };
+  }, [selectedBusiness]);
+
+  const filteredBusinesses = useMemo(() => {
+    return businesses.filter(b => {
+      const matchesCategory = selectedCategory === 'Todos' || 
+                             (b.category || '').trim().toLowerCase() === selectedCategory.trim().toLowerCase();
+      
+      const matchesSearch = (b.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+                           (b.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [businesses, selectedCategory, searchQuery]);
+
+  const handleWhatsAppOrder = (business: Business) => {
+    if (!business.isOpen || cart.length === 0) return;
+
+    const itemsList = cart.map(item => `*${item.quantity}x* ${item.product.name} (_$${item.product.price.toLocaleString()}_)`).join('\n');
+    const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+    const tipAmount = subtotal >= 100 ? subtotal * 0.18 : 15;
+    const total = subtotal + tipAmount;
+    
+    const message = `¡Hola! Me gustaría hacer un pedido en Mi Colonia para *${business.name}*:\n\n${itemsList}\n\n*Dirección de entrega:* ${deliveryAddress}\n*Forma de pago:* ${paymentMethod}\n\n*Subtotal:* $${subtotal.toLocaleString()}\n*Propina (Repartidor):* $${tipAmount.toLocaleString()}\n━━━━━━━━━━━━━━\n*Total a pagar: $${total.toLocaleString()}*\n━━━━━━━━━━━━━━\n\n¿Me confirmarían el pedido?`;
+    const phone = (business.phone || '').replace(/\D/g, '');
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+    toast.info('Redirigiendo a WhatsApp...');
+  };
+
+  const addToCart = (product: Product) => {
+    setCart(prev => {
+      const existing = prev.find(item => item.product.id === product.id);
+      if (existing) {
+        return prev.map(item => 
+          item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      toast.success(`${product.name} agregado al carrito`);
+      return [...prev, { product, quantity: 1 }];
+    });
+  };
+
+  const removeFromCart = (productId: string) => {
+    setCart(prev => {
+      const existing = prev.find(item => item.product.id === productId);
+      if (existing && existing.quantity > 1) {
+        return prev.map(item => 
+          item.product.id === productId ? { ...item, quantity: item.quantity - 1 } : item
+        );
+      }
+      return prev.filter(item => item.product.id !== productId);
+    });
+  };
+
+  const handleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      toast.success('¡Sesión iniciada correctamente!');
+    } catch (error: any) {
+      if (error?.code === 'auth/popup-closed-by-user' || error?.code === 'auth/cancelled-popup-request') {
+        return;
+      }
+      toast.error('Error al iniciar sesión');
+      console.error("Login Error:", error);
+    }
+  };
+
+  const handleSubmitReview = async () => {
+    if (!selectedBusiness || !auth.currentUser) return;
+    if (!newReview.comment.trim()) return;
+
+    setIsSubmittingReview(true);
+    try {
+      const reviewsRef = collection(db, 'businesses', selectedBusiness.id, 'reviews');
+      await addDoc(reviewsRef, {
+        userId: auth.currentUser.uid,
+        userName: auth.currentUser.displayName || 'Vecino',
+        rating: newReview.rating,
+        comment: newReview.comment,
+        createdAt: serverTimestamp()
+      });
+      setNewReview({ rating: 5, comment: '' });
+      toast.success('¡Reseña publicada! Gracias por tu opinión.');
+    } catch (error) {
+      toast.error('Error al publicar la reseña');
+      console.error("Error submitting review:", error);
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+  const getItemQuantity = (productId: string) => {
+    return cart.find(item => item.product.id === productId)?.quantity || 0;
+  };
+
+  const cartSubtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const cartTipAmount = cartSubtotal > 0 ? (cartSubtotal >= 100 ? cartSubtotal * 0.18 : 15) : 0;
+  const cartTotal = cartSubtotal + cartTipAmount;
+
+  return (
+    <div className="min-h-screen bg-neutral-50 font-sans text-neutral-900 pb-10">
+      <Header 
+        user={user} 
+        searchQuery={searchQuery} 
+        setSearchQuery={setSearchQuery} 
+        onLogin={handleLogin} 
+        onTitleClick={handleTitleClick}
+        isAdminModeActive={isAdminModeActive}
+      />
+
+      <main className="max-w-md mx-auto px-4 mt-6">
+        <CategoryFilter 
+          selectedCategory={selectedCategory} 
+          setSelectedCategory={setSelectedCategory} 
+        />
+
+        {/* Popular Section */}
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-black text-orange-600 flex items-center gap-2">
+              Populares Cerca <span className="animate-pulse">🔥</span>
+            </h2>
+            <button className="text-xs font-bold text-neutral-400">Ver todos</button>
+          </div>
+
+          <div className="grid grid-cols-4 gap-x-2 gap-y-6">
+            <AnimatePresence mode="popLayout">
+              {isLoading ? (
+                Array(8).fill(0).map((_, i) => (
+                  <div key={i} className="flex flex-col items-center gap-2 animate-pulse">
+                    <div className="w-16 h-16 rounded-full bg-white shadow-sm" />
+                    <div className="w-10 h-1.5 bg-neutral-200 rounded" />
+                  </div>
+                ))
+              ) : errorDetails ? (
+                <div className="col-span-full bg-red-50 border border-red-100 rounded-2xl p-6 text-center">
+                  <p className="text-red-700 text-[10px] font-bold mb-1">Problema</p>
+                  <p className="text-red-600 text-[8px]">{errorDetails}</p>
+                </div>
+              ) : filteredBusinesses.length === 0 ? (
+                <div className="col-span-full py-16 px-4 bg-white rounded-3xl border border-dashed border-neutral-200 text-center">
+                  <div className="w-12 h-12 bg-neutral-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <ShoppingBag className="w-6 h-6 text-neutral-200" />
+                  </div>
+                  <p className="text-neutral-500 text-xs font-black uppercase tracking-widest mb-1">Sin negocios</p>
+                  <p className="text-neutral-400 text-[10px] leading-relaxed">
+                    No hay negocios disponibles en este momento.
+                  </p>
+                </div>
+              ) : (
+                filteredBusinesses.map((biz) => (
+                  <BusinessCard 
+                    key={biz.id} 
+                    biz={biz} 
+                    onClick={() => setSelectedBusiness(biz)} 
+                  />
+                ))
+              )}
+            </AnimatePresence>
+          </div>
+        </section>
+      </main>
+
+      <AnimatePresence>
+        {selectedBusiness && (
+          <BusinessOverlay
+            business={selectedBusiness}
+            products={products}
+            reviews={reviews}
+            onClose={() => setSelectedBusiness(null)}
+            onAddToCart={addToCart}
+            onRemoveFromCart={removeFromCart}
+            getItemQuantity={getItemQuantity}
+            user={user}
+            newReview={newReview}
+            setNewReview={setNewReview}
+            isSubmittingReview={isSubmittingReview}
+            onSubmitReview={handleSubmitReview}
+            onLogin={handleLogin}
+            onProductClick={(product) => {
+              setSelectedProduct(product);
+              updateDoc(doc(db, 'businesses', selectedBusiness.id, 'products', product.id), {
+                viewCount: increment(1)
+              }).catch(err => console.error(err));
+              setIsProductModalOpen(true);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isProductModalOpen && selectedProduct && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-3xl p-6 w-full max-w-sm relative shadow-2xl"
+            >
+              <button onClick={() => setIsProductModalOpen(false)} className="absolute top-4 right-4 text-neutral-400 hover:text-neutral-900"><X /></button>
+              <img src={selectedProduct.imageUrl || `https://picsum.photos/seed/${selectedProduct.id}/200`} className="w-full h-48 object-cover rounded-2xl mb-4" referrerPolicy="no-referrer" />
+              <h3 className="text-xl font-black text-neutral-900 mb-2">{selectedProduct.name}</h3>
+              <p className="text-sm font-bold text-neutral-400 mb-4">Visto {(products.find(p => p.id === selectedProduct.id)?.viewCount) || 0} veces</p>
+              <p className="text-neutral-500 mb-4 text-sm">{selectedProduct.description}</p>
+              <div className="flex items-center justify-between">
+                 <p className="text-lg font-black text-orange-600">${selectedProduct.price.toLocaleString()}</p>
+                 <button onClick={() => {addToCart(selectedProduct); setIsProductModalOpen(false);}} className="bg-orange-600 text-white py-2 px-6 rounded-2xl font-black text-sm">PEDIR</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isCheckoutOpen && selectedBusiness && (
+          <CheckoutPanel
+            cart={cart}
+            deliveryAddress={deliveryAddress}
+            setDeliveryAddress={setDeliveryAddress}
+            paymentMethod={paymentMethod}
+            setPaymentMethod={setPaymentMethod}
+            onClose={() => setIsCheckoutOpen(false)}
+            onConfirm={() => {
+              handleWhatsAppOrder(selectedBusiness);
+              setIsCheckoutOpen(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Floating Cart Button */}
+      <AnimatePresence>
+        {cartCount > 0 && !isCheckoutOpen && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-6 left-4 right-4 z-40 flex justify-center"
+          >
+            <div className="w-full max-w-md bg-neutral-900 text-white p-4 rounded-3xl shadow-2xl flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-600/20">
+                    <ShoppingBag className="w-6 h-6" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 bg-white text-neutral-900 text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-neutral-900">
+                    {cartCount}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase font-black text-neutral-400">Tu Pedido</p>
+                  <p className="text-sm font-black">${cartTotal.toLocaleString()}</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setCart([])}
+                  className="px-4 py-3 rounded-2xl text-xs font-black bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
+                >
+                  Limpiar
+                </button>
+                <button 
+                  onClick={() => setIsCheckoutOpen(true)}
+                  className="px-6 py-3 bg-mexican-green rounded-2xl text-xs font-black flex items-center gap-2 hover:bg-emerald-700 active:scale-95 transition-all shadow-lg shadow-mexican-green/20"
+                >
+                  Continuar
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
