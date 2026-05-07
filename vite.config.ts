@@ -18,6 +18,8 @@ export default defineConfig(({mode}) => {
           short_name: 'MiColonia',
           description: 'Tu colonia en un clic',
           theme_color: '#ea580c',
+          background_color: '#ffffff',
+          display: 'standalone',
           icons: [
             {
               src: 'logo.png',
