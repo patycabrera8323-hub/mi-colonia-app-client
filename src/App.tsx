@@ -321,6 +321,10 @@ export default function App() {
               }).catch(err => console.error(err));
               setIsProductModalOpen(true);
             }}
+            cartCount={cartCount}
+            cartTotal={cartTotal}
+            onCheckout={() => setIsCheckoutOpen(true)}
+            onClearCart={() => setCart([])}
           />
         )}
       </AnimatePresence>
@@ -367,49 +371,6 @@ export default function App() {
               setIsCheckoutOpen(false);
             }}
           />
-        )}
-      </AnimatePresence>
-
-      {/* Floating Cart Button */}
-      <AnimatePresence>
-        {selectedBusiness && cartCount > 0 && !isCheckoutOpen && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-6 left-4 right-4 z-40 flex justify-center"
-          >
-            <div className="w-full max-w-md bg-neutral-900 text-white p-4 rounded-3xl shadow-2xl flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="w-12 h-12 bg-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-600/20">
-                    <ShoppingBag className="w-6 h-6" />
-                  </div>
-                  <div className="absolute -top-2 -right-2 bg-white text-neutral-900 text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-neutral-900">
-                    {cartCount}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase font-black text-neutral-400">Tu Pedido</p>
-                  <p className="text-sm font-black">${cartTotal.toLocaleString()}</p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => setCart([])}
-                  className="px-4 py-3 rounded-2xl text-xs font-black bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
-                >
-                  Limpiar
-                </button>
-                <button 
-                  onClick={() => setIsCheckoutOpen(true)}
-                  className="px-6 py-3 bg-mexican-green rounded-2xl text-xs font-black flex items-center gap-2 hover:bg-emerald-700 active:scale-95 transition-all shadow-lg shadow-mexican-green/20"
-                >
-                  Continuar
-                </button>
-              </div>
-            </div>
-          </motion.div>
         )}
       </AnimatePresence>
     </div>
