@@ -15,12 +15,15 @@ export function Header({ user, searchQuery, setSearchQuery, onLogin, onTitleClic
     <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md px-4 py-4 border-b border-neutral-100">
       <div className="max-w-md mx-auto">
         <div className="flex items-center justify-between mb-3">
-          <h1 
+          <div 
             onClick={onTitleClick}
-            className="text-xl font-black tracking-tight text-orange-600 shrink-0 cursor-pointer select-none active:scale-95 transition-transform"
+            className="flex items-center gap-2 cursor-pointer select-none active:scale-95 transition-transform"
           >
-            MI COLONIA
-          </h1>
+            <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
+            <h1 className="text-xl font-black tracking-tight text-neutral-900">
+              MI <span className="text-orange-600">COLONIA</span>
+            </h1>
+          </div>
           {user ? (
             <div className="flex items-center gap-3">
               {isAdminModeActive && (

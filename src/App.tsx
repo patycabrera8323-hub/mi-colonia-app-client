@@ -372,7 +372,7 @@ export default function App() {
 
       {/* Floating Cart Button */}
       <AnimatePresence>
-        {cartCount > 0 && !isCheckoutOpen && selectedBusiness && (
+        {selectedBusiness && cartCount > 0 && !isCheckoutOpen && (
           <motion.div
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
