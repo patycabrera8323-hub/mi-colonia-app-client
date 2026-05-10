@@ -162,7 +162,63 @@ export default function App() {
     toast.info('Redirigiendo a WhatsApp...');
   };
 
+  const createInternalOrder = async (business: Business) => {
+    if (!user) {
+      toast.error('Debes iniciar sesión para realizar un pedido interno');
+      handleLogin();
+      return;
+    }
+
+    if (cart.length === 0) return;
+
+    try {
+      const orderData = {
+        clientId: user.displayName || user.email || user.uid,
+        storeId: business.id,
+        storeName: business.name,
+        status: 'pending',
+        deliveryLocation: {
+          address: deliveryAddress,
+          lat: 0, // In a real app, we would get this from a map
+          lng: 0
+        },
+        pickupLocation: {
+          address: business.address || 'Tienda',
+          lat: business.lat || 0,
+          lng: business.lng || 0
+        },
+        items: cart.map(item => ({
+          name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity
+        })),
+        total: cartTotal,
+        paymentMethod: paymentMethod,
+        createdAt: serverTimestamp(),
+        driverId: null
+      };
+
+      await addDoc(collection(db, 'orders'), orderData);
+      setCart([]);
+      setIsCheckoutOpen(false);
+      setSelectedBusiness(null);
+      toast.success('¡Pedido realizado con éxito! Un repartidor lo tomará pronto.');
+    } catch (error) {
+      console.error("Error creating internal order:", error);
+      toast.error('Error al procesar el pedido. Intenta de nuevo.');
+    }
+  };
+
+  const handleOrderSubmission = (business: Business) => {
+    if (business.orderSystem === 'internal') {
+      createInternalOrder(business);
+    } else {
+      handleWhatsAppOrder(business);
+    }
+  };
+
   const addToCart = (product: Product) => {
+
     setCart(prev => {
       const existing = prev.find(item => item.product.id === product.id);
       if (existing) {
@@ -367,9 +423,9 @@ export default function App() {
             setPaymentMethod={setPaymentMethod}
             onClose={() => setIsCheckoutOpen(false)}
             onConfirm={() => {
-              handleWhatsAppOrder(selectedBusiness);
-              setIsCheckoutOpen(false);
+              handleOrderSubmission(selectedBusiness);
             }}
+            business={selectedBusiness}
           />
         )}
       </AnimatePresence>

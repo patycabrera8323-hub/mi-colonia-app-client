@@ -17,6 +17,9 @@ export interface Business {
   enviosAPartirDe?: string;
   paymentMethods?: string[];
   paymentMethod?: string;
+  orderSystem?: 'whatsapp' | 'internal';
+  lat?: number;
+  lng?: number;
 }
 
 export interface Product {

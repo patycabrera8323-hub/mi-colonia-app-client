@@ -1,6 +1,6 @@
 import { X, Truck, MessageCircle } from 'lucide-react';
 import { motion } from 'motion/react';
-import { CartItem } from '../types';
+import { CartItem, Business } from '../types';
 
 interface CheckoutPanelProps {
   cart: CartItem[];
@@ -10,6 +10,7 @@ interface CheckoutPanelProps {
   setPaymentMethod: (method: string) => void;
   onClose: () => void;
   onConfirm: () => void;
+  business: Business;
 }
 
 export function CheckoutPanel({
@@ -19,7 +20,8 @@ export function CheckoutPanel({
   paymentMethod,
   setPaymentMethod,
   onClose,
-  onConfirm
+  onConfirm,
+  business
 }: CheckoutPanelProps) {
   const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
   const tipAmount = subtotal >= 100 ? subtotal * 0.18 : 15;
@@ -94,8 +96,17 @@ export function CheckoutPanel({
           disabled={!deliveryAddress || !paymentMethod}
           className="w-full bg-orange-600 text-white rounded-2xl py-4 font-black flex items-center justify-center gap-3 shadow-xl shadow-orange-600/20 active:scale-95 disabled:opacity-50 disabled:grayscale transition-all"
         >
-          <MessageCircle className="w-5 h-5" />
-          PEDIR POR WHATSAPP
+          {business.orderSystem === 'internal' ? (
+            <>
+              <Truck className="w-5 h-5" />
+              CONFIRMAR PEDIDO
+            </>
+          ) : (
+            <>
+              <MessageCircle className="w-5 h-5" />
+              PEDIR POR WHATSAPP
+            </>
+          )}
         </button>
       </div>
     </motion.div>
