@@ -10,6 +10,8 @@ interface CheckoutPanelProps {
   setPaymentMethod: (method: string) => void;
   onClose: () => void;
   onConfirm: () => void;
+  orderNotes: string;
+  setOrderNotes: (notes: string) => void;
   business: Business;
 }
 
@@ -21,6 +23,8 @@ export function CheckoutPanel({
   setPaymentMethod,
   onClose,
   onConfirm,
+  orderNotes,
+  setOrderNotes,
   business
 }: CheckoutPanelProps) {
   const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
@@ -51,6 +55,18 @@ export function CheckoutPanel({
               onChange={(e) => setDeliveryAddress(e.target.value)}
               placeholder="Ej: Calle 5 #123, Depto 4B..."
               className="w-full bg-neutral-50 border-2 border-neutral-100 rounded-2xl p-4 pl-12 text-sm font-bold focus:border-orange-500 outline-none min-h-[100px] transition-colors"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="text-[10px] font-black text-neutral-400 uppercase block mb-3 tracking-widest">¿Algún comentario o nota especial?</label>
+          <div className="relative">
+            <textarea 
+              value={orderNotes}
+              onChange={(e) => setOrderNotes(e.target.value)}
+              placeholder="Ej: Tocar timbre fuerte, sin cebolla, etc..."
+              className="w-full bg-neutral-50 border-2 border-neutral-100 rounded-2xl p-4 text-sm font-bold focus:border-orange-500 outline-none min-h-[80px] transition-colors"
             />
           </div>
         </div>

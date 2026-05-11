@@ -40,6 +40,7 @@ export default function App() {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
+  const [orderNotes, setOrderNotes] = useState('');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
@@ -59,7 +60,7 @@ export default function App() {
   }, []);
 
   const handleTitleClick = () => {
-    if (user?.email !== 'jicr110@gmail.com') return;
+    if (user?.email !== 'jicr109@gmail.com') return;
     
     setAdminClickCount(prev => {
       if (prev + 1 >= 5) {
@@ -155,7 +156,7 @@ export default function App() {
     const tipAmount = subtotal >= 100 ? subtotal * 0.18 : 15;
     const total = subtotal + tipAmount;
     
-    const message = `¡Hola! Me gustaría hacer un pedido en Mi Colonia para *${business.name}*:\n\n${itemsList}\n\n*Dirección de entrega:* ${deliveryAddress}\n*Forma de pago:* ${paymentMethod}\n\n*Subtotal:* $${subtotal.toLocaleString()}\n*Propina (Repartidor):* $${tipAmount.toLocaleString()}\n━━━━━━━━━━━━━━\n*Total a pagar: $${total.toLocaleString()}*\n━━━━━━━━━━━━━━\n\n¿Me confirmarían el pedido?`;
+    const message = `¡Hola! Me gustaría hacer un pedido en Mi Colonia para *${business.name}*:\n\n${itemsList}\n\n*Dirección de entrega:* ${deliveryAddress}${orderNotes ? `\n*Notas:* ${orderNotes}` : ''}\n*Forma de pago:* ${paymentMethod}\n\n*Subtotal:* $${subtotal.toLocaleString()}\n*Propina (Repartidor):* $${tipAmount.toLocaleString()}\n━━━━━━━━━━━━━━\n*Total a pagar: $${total.toLocaleString()}*\n━━━━━━━━━━━━━━\n\n¿Me confirmarían el pedido?`;
     const phone = (business.phone || '').replace(/\D/g, '');
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
@@ -194,12 +195,14 @@ export default function App() {
         })),
         total: cartTotal,
         paymentMethod: paymentMethod,
+        notes: orderNotes,
         createdAt: serverTimestamp(),
         driverId: null
       };
 
       await addDoc(collection(db, 'orders'), orderData);
       setCart([]);
+      setOrderNotes('');
       setIsCheckoutOpen(false);
       setSelectedBusiness(null);
       toast.success('¡Pedido realizado con éxito! Un repartidor lo tomará pronto.');
@@ -422,6 +425,8 @@ export default function App() {
             paymentMethod={paymentMethod}
             setPaymentMethod={setPaymentMethod}
             onClose={() => setIsCheckoutOpen(false)}
+            orderNotes={orderNotes}
+            setOrderNotes={setOrderNotes}
             onConfirm={() => {
               handleOrderSubmission(selectedBusiness);
             }}
