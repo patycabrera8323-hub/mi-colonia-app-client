@@ -365,7 +365,7 @@ export default function App() {
             Impulsa tus ventas con <span className="text-orange-600">NegocioYa</span>
           </h4>
           <button 
-            onClick={() => window.open('https://negocioya-admin.vercel.app', '_blank')}
+            onClick={() => window.open('https://mi-colonia-admin.pages.dev/', '_blank')}
             className="w-full bg-neutral-900 text-white py-4 rounded-2xl font-black text-xs tracking-widest uppercase hover:bg-orange-600 transition-all active:scale-95 shadow-xl flex items-center justify-center gap-2"
           >
             ¿Quieres anunciarte? Contáctanos
