@@ -364,8 +364,12 @@ export default function App() {
             onClick={() => window.open('https://mi-colonia-admin.pages.dev/', '_blank')}
             className="inline-flex flex-col items-center gap-0.5 group"
           >
-            <span className="text-[7px] font-bold text-neutral-300 uppercase tracking-[0.3em]">¿Tu negocio aquí?</span>
-            <span className="text-[9px] font-black text-orange-500/80 group-hover:text-neutral-900 border-b border-orange-100 group-hover:border-neutral-900 transition-all uppercase tracking-[0.2em]">Click aquí</span>
+            <span className="text-[7px] font-bold text-neutral-300 uppercase tracking-[0.2em] leading-relaxed max-w-[200px]">
+              ¿Quieres que tu negocio crezca y tener más exposición? Contáctanos
+            </span>
+            <span className="text-[9px] font-black text-orange-500/80 group-hover:text-neutral-900 border-b border-orange-100 group-hover:border-neutral-900 transition-all uppercase tracking-[0.2em] mt-1">
+              Click aquí
+            </span>
           </button>
         </div>
         
