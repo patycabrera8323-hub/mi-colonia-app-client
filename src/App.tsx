@@ -358,6 +358,10 @@ export default function App() {
         </section>
       </main>
       
+      <div className="max-w-md mx-auto px-12">
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent" />
+      </div>
+
       <footer className="max-w-md mx-auto px-6 py-8 text-center">
         <div className="mb-8">
           <button 
