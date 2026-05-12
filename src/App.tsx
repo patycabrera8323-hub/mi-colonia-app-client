@@ -364,18 +364,18 @@ export default function App() {
             onClick={() => window.open('https://mi-colonia-admin.pages.dev/', '_blank')}
             className="inline-flex flex-col items-center gap-0.5 group"
           >
-            <span className="text-[7px] font-bold text-neutral-300 uppercase tracking-[0.2em] leading-relaxed max-w-[200px]">
+            <span className="text-[7px] font-bold text-neutral-500 uppercase tracking-[0.2em] leading-relaxed max-w-[200px]">
               ¿Quieres que tu negocio crezca y tener más exposición? Contáctanos
             </span>
-            <span className="text-[9px] font-black text-orange-500/80 group-hover:text-neutral-900 border-b border-orange-100 group-hover:border-neutral-900 transition-all uppercase tracking-[0.2em] mt-1">
+            <span className="text-[9px] font-black text-orange-600 group-hover:text-neutral-900 border-b border-orange-200 group-hover:border-neutral-900 transition-all uppercase tracking-[0.2em] mt-1">
               Click aquí
             </span>
           </button>
         </div>
         
-        <div className="flex flex-col items-center gap-1.5 opacity-25 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-1000">
-          <img src="/searmo-logo.png" alt="Searmo" className="h-4 w-auto object-contain" />
-          <p className="text-[6px] font-bold uppercase tracking-[0.5em] text-neutral-400">Powered by Searmo</p>
+        <div className="flex flex-col items-center gap-1.5 opacity-80 hover:opacity-100 transition-all duration-500">
+          <img src="/searmo-logo.png" alt="Searmo" className="h-5 w-auto object-contain" />
+          <p className="text-[6px] font-bold uppercase tracking-[0.5em] text-neutral-500">Powered by Searmo</p>
         </div>
       </footer>
 
