@@ -83,7 +83,7 @@ service cloud.firestore {
     }
 
     match /businesses/{userId} {
-      allow read: if true;
+      allow read: if isAdmin() || isOwner(userId) || (resource.data.payment_verified == true);
 
       allow create: if isOwner(userId) && isValidId(userId) &&
         isValidBusiness(incoming()) &&

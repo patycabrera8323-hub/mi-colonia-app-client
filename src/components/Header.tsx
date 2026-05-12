@@ -21,7 +21,7 @@ export function Header({ user, searchQuery, setSearchQuery, onLogin, onTitleClic
           >
             <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
             <h1 className="text-xl font-black tracking-tight text-neutral-900">
-              MI <span className="text-orange-600">COLONIA</span>
+              NEGOCIO <span className="text-orange-600">YA</span>
             </h1>
           </div>
           {user ? (

@@ -14,8 +14,8 @@ export default defineConfig(({mode}) => {
         registerType: 'autoUpdate',
         includeAssets: ['logo.png', 'favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
         manifest: {
-          name: 'Mi Colonia',
-          short_name: 'MiColonia',
+          name: 'NegocioYa',
+          short_name: 'NegocioYa',
           description: 'Tu colonia en un clic',
           theme_color: '#ea580c',
           background_color: '#ffffff',

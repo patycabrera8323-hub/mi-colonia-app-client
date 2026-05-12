@@ -82,10 +82,11 @@ export default function App() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       let bizData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Business));
       
-      // Filter logic: Hide businesses with "Admin" in name unless Admin Mode is active
+      // Filter logic: Only show verified businesses to public
+      // Also hide businesses with "Admin" in name unless Admin Mode is active
       if (!isAdminModeActive) {
         bizData = bizData.filter(b => 
-          !(b.name || '').toLowerCase().includes('admin')
+          b.payment_verified === true && !(b.name || '').toLowerCase().includes('admin')
         );
       }
 
@@ -156,7 +157,7 @@ export default function App() {
     const tipAmount = subtotal >= 100 ? subtotal * 0.18 : 15;
     const total = subtotal + tipAmount;
     
-    const message = `¡Hola! Me gustaría hacer un pedido en Mi Colonia para *${business.name}*:\n\n${itemsList}\n\n*Dirección de entrega:* ${deliveryAddress}${orderNotes ? `\n*Notas:* ${orderNotes}` : ''}\n*Forma de pago:* ${paymentMethod}\n\n*Subtotal:* $${subtotal.toLocaleString()}\n*Propina (Repartidor):* $${tipAmount.toLocaleString()}\n━━━━━━━━━━━━━━\n*Total a pagar: $${total.toLocaleString()}*\n━━━━━━━━━━━━━━\n\n¿Me confirmarían el pedido?`;
+    const message = `¡Hola! Me gustaría hacer un pedido en NegocioYa para *${business.name}*:\n\n${itemsList}\n\n*Dirección de entrega:* ${deliveryAddress}${orderNotes ? `\n*Notas:* ${orderNotes}` : ''}\n*Forma de pago:* ${paymentMethod}\n\n*Subtotal:* $${subtotal.toLocaleString()}\n*Propina (Repartidor):* $${tipAmount.toLocaleString()}\n━━━━━━━━━━━━━━\n*Total a pagar: $${total.toLocaleString()}*\n━━━━━━━━━━━━━━\n\n¿Me confirmarían el pedido?`;
     const phone = (business.phone || '').replace(/\D/g, '');
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
