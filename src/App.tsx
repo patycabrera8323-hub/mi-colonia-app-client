@@ -358,25 +358,20 @@ export default function App() {
         </section>
       </main>
       
-      <footer className="max-w-md mx-auto px-4 py-12 text-center space-y-8">
-        <div className="bg-white rounded-[2.5rem] p-8 border border-neutral-100 shadow-sm">
-          <p className="text-xs font-black text-neutral-400 uppercase tracking-[0.2em] mb-4">¿Eres dueño de un negocio?</p>
-          <h4 className="text-xl font-black text-neutral-900 uppercase tracking-tighter mb-6 leading-tight">
-            Impulsa tus ventas con <span className="text-orange-600">NegocioYa</span>
-          </h4>
+      <footer className="max-w-md mx-auto px-6 py-8 text-center">
+        <div className="mb-8">
           <button 
             onClick={() => window.open('https://mi-colonia-admin.pages.dev/', '_blank')}
-            className="w-full bg-neutral-900 text-white py-4 rounded-2xl font-black text-xs tracking-widest uppercase hover:bg-orange-600 transition-all active:scale-95 shadow-xl flex items-center justify-center gap-2"
+            className="inline-flex flex-col items-center gap-0.5 group"
           >
-            ¿Quieres anunciarte? Contáctanos
+            <span className="text-[7px] font-bold text-neutral-300 uppercase tracking-[0.3em]">¿Tu negocio aquí?</span>
+            <span className="text-[9px] font-black text-orange-500/80 group-hover:text-neutral-900 border-b border-orange-100 group-hover:border-neutral-900 transition-all uppercase tracking-[0.2em]">Click aquí</span>
           </button>
         </div>
         
-        <div className="flex flex-col items-center gap-3 opacity-20 hover:opacity-50 transition-opacity duration-500">
-          <img src="/logo.png" alt="Logo" className="w-6 h-6 grayscale" />
-          <p className="text-[9px] font-black uppercase tracking-[0.4em] text-neutral-500">
-            Powered by <span className="text-orange-600">Searmo</span>
-          </p>
+        <div className="flex flex-col items-center gap-1.5 opacity-25 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-1000">
+          <img src="/searmo-logo.png" alt="Searmo" className="h-4 w-auto object-contain" />
+          <p className="text-[6px] font-bold uppercase tracking-[0.5em] text-neutral-400">Powered by Searmo</p>
         </div>
       </footer>
 
