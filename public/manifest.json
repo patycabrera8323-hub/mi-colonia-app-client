@@ -1,7 +1,7 @@
 {
-  "name": "Mi Colonia",
-  "short_name": "MiColonia",
-  "description": "Tu colonia en un clic",
+  "name": "NegocioYa",
+  "short_name": "NegocioYa",
+  "description": "Negocios de tu colonia en un clic",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
