@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { 
   ShoppingBag, 
-  X 
+  X,
+  Clock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -31,6 +32,10 @@ import { CheckoutPanel } from './components/CheckoutPanel';
 import { OrdersOverlay, OrderData } from './components/OrdersOverlay';
 
 export default function App() {
+  // Add a safety check for initialization
+  const [initError, setInitError] = useState<string | null>(null);
+  
+  // Existing states...
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category>('Todos');
   const [searchQuery, setSearchQuery] = useState('');
