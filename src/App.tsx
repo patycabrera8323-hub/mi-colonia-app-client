@@ -5,12 +5,13 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  collection, 
-  query, 
-  onSnapshot, 
-  getDocs, 
-  doc, 
+  collection,
+  query,
+  onSnapshot,
+  doc,
   limit,
+  where,
+  orderBy,
   addDoc,
   serverTimestamp,
   updateDoc,
@@ -27,6 +28,7 @@ import { CategoryFilter } from './components/CategoryFilter';
 import { BusinessCard } from './components/BusinessCard';
 import { BusinessOverlay } from './components/BusinessOverlay';
 import { CheckoutPanel } from './components/CheckoutPanel';
+import { OrdersOverlay, OrderData } from './components/OrdersOverlay';
 
 export default function App() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -49,15 +51,93 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [isAdminModeActive, setIsAdminModeActive] = useState(false);
+  const [orders, setOrders] = useState<OrderData[]>([]);
+  const [isOrdersOpen, setIsOrdersOpen] = useState(false);
+  const prevOrdersRef = useMemo(() => ({ current: [] as OrderData[] }), []);
 
   // Auth listener
   useEffect(() => {
     return auth.onAuthStateChanged((u) => {
       setUser(u);
       // Reset admin mode on logout
-      if (!u) setIsAdminModeActive(false);
+      if (!u) {
+        setIsAdminModeActive(false);
+        setOrders([]);
+      }
     });
   }, []);
+
+  // Notification permissions
+  useEffect(() => {
+    if ("Notification" in window) {
+      if (Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+    }
+  }, []);
+
+  // Notification utility
+  const sendNotification = (title: string, body: string) => {
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+
+    try {
+      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+      audio.volume = 0.5;
+      audio.play().catch(() => {});
+    } catch (ae) {}
+
+    try {
+      const n = new Notification(title, { body, icon: '/logo.png' });
+      setTimeout(() => n.close(), 5000);
+    } catch (e) {
+      console.warn("Error showing notification:", e);
+    }
+  };
+
+  // Order status listener
+  useEffect(() => {
+    if (!user) return;
+
+    const q = query(
+      collection(db, 'orders'),
+      where('clientId', 'in', [user.displayName || '', user.email || '', user.uid]),
+      orderBy('createdAt', 'desc'),
+      limit(10)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const ordersData: OrderData[] = [];
+      
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "modified") {
+          const newData = change.doc.data() as OrderData;
+          const oldData = prevOrdersRef.current.find(o => o.id === change.doc.id);
+          
+          if (oldData && oldData.status !== newData.status) {
+            const statusLabels: Record<string, string> = {
+              confirmed: 'Confirmado',
+              accepted: 'Repartidor Asignado',
+              preparing: 'En Preparación',
+              on_route: 'En Camino',
+              delivered: '¡Entregado!',
+              cancelled: 'Cancelado'
+            };
+            const statusLabel = statusLabels[newData.status] || newData.status;
+            sendNotification(`📦 Pedido ${statusLabel}`, `Tu pedido de ${newData.storeName || 'la tienda'} ha cambiado a: ${statusLabel}`);
+          }
+        }
+      });
+
+      snapshot.forEach((doc) => {
+        ordersData.push({ id: doc.id, ...doc.data() } as OrderData);
+      });
+
+      prevOrdersRef.current = ordersData;
+      setOrders(ordersData);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   const handleTitleClick = () => {
     if (user?.email !== 'jicr109@gmail.com') return;
@@ -305,6 +385,17 @@ export default function App() {
         isAdminModeActive={isAdminModeActive}
       />
 
+      {/* Orders floating button */}
+      {user && orders.length > 0 && (
+        <button 
+          onClick={() => setIsOrdersOpen(true)}
+          className="fixed bottom-6 right-6 z-50 bg-orange-600 text-white p-4 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all flex items-center gap-2"
+        >
+          <Clock className="w-6 h-6" />
+          <span className="text-xs font-black uppercase tracking-widest pr-2">Mis Pedidos ({orders.filter(o => !['completed', 'cancelled'].includes(o.status)).length})</span>
+        </button>
+      )}
+
       <main className="max-w-md mx-auto px-4 mt-6">
         <CategoryFilter 
           selectedCategory={selectedCategory} 
@@ -457,6 +548,15 @@ export default function App() {
               handleOrderSubmission(selectedBusiness);
             }}
             business={selectedBusiness}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isOrdersOpen && (
+          <OrdersOverlay 
+            orders={orders} 
+            onClose={() => setIsOrdersOpen(false)} 
           />
         )}
       </AnimatePresence>
