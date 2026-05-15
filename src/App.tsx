@@ -30,6 +30,7 @@ import { BusinessCard } from './components/BusinessCard';
 import { BusinessOverlay } from './components/BusinessOverlay';
 import { CheckoutPanel } from './components/CheckoutPanel';
 import { OrdersOverlay, OrderData } from './components/OrdersOverlay';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 
 export default function App() {
   // Add a safety check for initialization
@@ -564,6 +565,8 @@ export default function App() {
           />
         )}
       </AnimatePresence>
+
+      <PWAInstallPrompt />
     </div>
   );
 }
