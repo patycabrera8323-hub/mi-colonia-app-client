@@ -12,6 +12,7 @@ export default defineConfig(({mode}) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
+        injectRegister: 'inline',
         manifestFilename: 'manifest.json',
         includeAssets: ['icon-192.png', 'icon-512.png', 'icon-maskable.png', 'logo.png'],
         manifest: {
