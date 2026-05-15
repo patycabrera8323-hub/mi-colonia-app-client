@@ -31,8 +31,10 @@ import { BusinessOverlay } from './components/BusinessOverlay';
 import { CheckoutPanel } from './components/CheckoutPanel';
 import { OrdersOverlay, OrderData } from './components/OrdersOverlay';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
+import { WelcomeScreen } from './components/WelcomeScreen';
 
 export default function App() {
+  const [showWelcome, setShowWelcome] = useState(true);
   // Add a safety check for initialization
   const [initError, setInitError] = useState<string | null>(null);
   
@@ -380,15 +382,19 @@ export default function App() {
   const cartTotal = cartSubtotal + cartTipAmount;
 
   return (
-    <div className="min-h-screen bg-neutral-50 font-sans text-neutral-900 pb-10">
-      <Header 
-        user={user} 
-        searchQuery={searchQuery} 
-        setSearchQuery={setSearchQuery} 
-        onLogin={handleLogin} 
-        onTitleClick={handleTitleClick}
-        isAdminModeActive={isAdminModeActive}
-      />
+    <>
+      <WelcomeScreen onComplete={() => setShowWelcome(false)} />
+      
+      {!showWelcome && (
+        <div className="min-h-screen bg-neutral-50 font-sans text-neutral-900 pb-10">
+          <Header 
+            user={user} 
+            searchQuery={searchQuery} 
+            setSearchQuery={setSearchQuery} 
+            onLogin={handleLogin} 
+            onTitleClick={handleTitleClick}
+            isAdminModeActive={isAdminModeActive}
+          />
 
       {/* Orders floating button */}
       {user && orders.length > 0 && (
@@ -567,6 +573,8 @@ export default function App() {
       </AnimatePresence>
 
       <PWAInstallPrompt />
-    </div>
+        </div>
+      )}
+    </>
   );
 }
