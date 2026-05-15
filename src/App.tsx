@@ -32,6 +32,7 @@ import { CheckoutPanel } from './components/CheckoutPanel';
 import { OrdersOverlay, OrderData } from './components/OrdersOverlay';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { WelcomeScreen } from './components/WelcomeScreen';
+import { PromotionalCarousel } from './components/PromotionalCarousel';
 
 export default function App() {
   const [showWelcome, setShowWelcome] = useState(true);
@@ -408,6 +409,12 @@ export default function App() {
       )}
 
       <main className="max-w-md mx-auto px-4 mt-6">
+        {/* 🔥 Carrusel de Promociones */}
+        <PromotionalCarousel onBusinessSelect={(bizId) => {
+          const found = businesses.find(b => b.id === bizId);
+          if (found) setSelectedBusiness(found);
+        }} />
+
         <CategoryFilter 
           selectedCategory={selectedCategory} 
           setSelectedCategory={setSelectedCategory} 
