@@ -7,6 +7,7 @@ export function PWAInstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [platform, setPlatform] = useState<'android' | 'ios' | 'other'>('other');
+  const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
     // Detectar plataforma
@@ -21,37 +22,33 @@ export function PWAInstallPrompt() {
     
     setIsStandalone(isPWA);
 
-    // Lógica para Android/Chrome
+    // Si no está instalada, mostramos el banner siempre después de 5 segundos
+    if (!isPWA) {
+      const timer = setTimeout(() => setShowPrompt(true), 5000);
+      return () => clearTimeout(timer);
+    }
+
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setTimeout(() => setShowPrompt(true), 3000);
     };
-
-    // Para iOS, mostramos el prompt manualmente después de un tiempo si no es PWA
-    if (isIOS && !isPWA) {
-      setTimeout(() => setShowPrompt(true), 4000);
-    }
-
-    // Diagnóstico: si después de 10s no hay prompt en Android, mostrar ayuda manual
-    const debugTimer = setTimeout(() => {
-      if (isAndroid && !isPWA && !deferredPrompt) {
-        setShowPrompt(true);
-      }
-    }, 10000);
 
     window.addEventListener('beforeinstallprompt', handler);
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
-      clearTimeout(debugTimer);
-    };
-  }, [deferredPrompt]);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      alert("Para instalar en este equipo: Toca los 3 puntos de Chrome y selecciona 'Instalar aplicación' o 'Agregar a la pantalla principal'.");
+    if (platform === 'ios') {
+      setShowGuide(true);
       return;
     }
+
+    if (!deferredPrompt) {
+      // Si no hay prompt automático, mostramos la guía manual para Android
+      setShowGuide(true);
+      return;
+    }
+
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') setShowPrompt(false);
@@ -69,7 +66,7 @@ export function PWAInstallPrompt() {
           exit={{ y: 100, opacity: 0 }}
           className="fixed bottom-6 left-4 right-4 z-[9999] md:left-auto md:right-8 md:w-96"
         >
-          <div className="relative overflow-hidden bg-white/95 backdrop-blur-xl border border-orange-100 rounded-[2.5rem] p-5 shadow-[0_20px_50px_rgba(234,88,12,0.2)]">
+          <div className="relative overflow-hidden bg-white/95 backdrop-blur-2xl border border-orange-100 rounded-[2.5rem] p-5 shadow-[0_20px_50px_rgba(234,88,12,0.25)]">
             <div className="flex items-center gap-4">
               <div className="relative flex-shrink-0 w-14 h-14 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/20">
                 <Smartphone className="text-white w-7 h-7" />
@@ -77,12 +74,10 @@ export function PWAInstallPrompt() {
 
               <div className="flex-1">
                 <h4 className="text-sm font-black text-neutral-900 uppercase tracking-tight leading-tight">
-                  {platform === 'ios' ? 'Instala en tu iPhone' : '¡Lleva Mi Colonia contigo!'}
+                  ¡Instala Mi Colonia!
                 </h4>
                 <p className="text-[11px] font-medium text-neutral-500 mt-0.5 leading-tight">
-                  {platform === 'ios' 
-                    ? 'Sigue los pasos para agregar a tu pantalla de inicio.' 
-                    : 'Instala nuestra App para una experiencia más rápida.'}
+                  Disfruta de una experiencia más rápida y segura desde tu pantalla de inicio.
                 </p>
               </div>
 
@@ -91,32 +86,61 @@ export function PWAInstallPrompt() {
               </button>
             </div>
 
-            {platform === 'ios' ? (
-              <div className="mt-4 bg-orange-50 rounded-2xl p-4 border border-orange-100/50">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-[11px] font-bold text-orange-800">
-                    <div className="w-6 h-6 rounded-lg bg-white flex items-center justify-center shadow-sm">1</div>
-                    <span>Toca el botón <span className="bg-white px-2 py-0.5 rounded border border-orange-200">Compartir</span> (cuadrado con flecha)</span>
+            <AnimatePresence>
+              {showGuide ? (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  className="mt-4 bg-orange-50 rounded-2xl p-4 border border-orange-100/50"
+                >
+                  <div className="space-y-3">
+                    <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-2">Instrucciones de instalación:</p>
+                    {platform === 'ios' ? (
+                      <>
+                        <div className="flex items-center gap-3 text-[11px] font-bold text-orange-800">
+                          <div className="w-6 h-6 rounded-lg bg-white flex items-center justify-center shadow-sm">1</div>
+                          <span>Toca el botón <span className="bg-white px-2 py-0.5 rounded border border-orange-200">Compartir</span></span>
+                        </div>
+                        <div className="flex items-center gap-3 text-[11px] font-bold text-orange-800">
+                          <div className="w-6 h-6 rounded-lg bg-white flex items-center justify-center shadow-sm">2</div>
+                          <span>Selecciona <span className="bg-white px-2 py-0.5 rounded border border-orange-200">"Agregar a inicio"</span></span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-3 text-[11px] font-bold text-orange-800">
+                          <div className="w-6 h-6 rounded-lg bg-white flex items-center justify-center shadow-sm">1</div>
+                          <span>Toca los <span className="bg-white px-2 py-0.5 rounded border border-orange-200">3 puntos (⋮)</span> de Chrome</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-[11px] font-bold text-orange-800">
+                          <div className="w-6 h-6 rounded-lg bg-white flex items-center justify-center shadow-sm">2</div>
+                          <span>Busca <span className="bg-white px-2 py-0.5 rounded border border-orange-200">"Instalar aplicación"</span></span>
+                        </div>
+                      </>
+                    )}
+                    <button 
+                      onClick={() => setShowGuide(false)}
+                      className="w-full mt-2 text-[10px] font-bold text-orange-400 underline"
+                    >
+                      Volver al botón
+                    </button>
                   </div>
-                  <div className="flex items-center gap-3 text-[11px] font-bold text-orange-800">
-                    <div className="w-6 h-6 rounded-lg bg-white flex items-center justify-center shadow-sm">2</div>
-                    <span>Selecciona <span className="bg-white px-2 py-0.5 rounded border border-orange-200">"Agregar a inicio"</span></span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={handleInstallClick}
-                className="mt-4 w-full py-4 bg-neutral-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-neutral-800 active:scale-95 transition-all shadow-xl shadow-black/10"
-              >
-                <Download size={14} />
-                Instalar App Ahora
-              </button>
-            )}
+                </motion.div>
+              ) : (
+                <button
+                  onClick={handleInstallClick}
+                  className="mt-4 w-full py-4 bg-neutral-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-neutral-800 active:scale-95 transition-all shadow-xl shadow-black/10"
+                >
+                  <Download size={14} />
+                  {platform === 'ios' ? 'Ver cómo instalar' : 'Instalar App Ahora'}
+                </button>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
       )}
     </AnimatePresence>
   );
 }
+
 
