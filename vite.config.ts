@@ -23,7 +23,7 @@ export default defineConfig(({mode}) => {
           display: 'standalone',
           orientation: 'portrait',
           scope: '/',
-          start_url: '/',
+          start_url: '/?utm_source=pwa',
           lang: 'es',
           icons: [
             {

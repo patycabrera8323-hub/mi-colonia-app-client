@@ -33,12 +33,25 @@ export function PWAInstallPrompt() {
       setTimeout(() => setShowPrompt(true), 4000);
     }
 
+    // Diagnóstico: si después de 10s no hay prompt en Android, mostrar ayuda manual
+    const debugTimer = setTimeout(() => {
+      if (isAndroid && !isPWA && !deferredPrompt) {
+        setShowPrompt(true);
+      }
+    }, 10000);
+
     window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      clearTimeout(debugTimer);
+    };
+  }, [deferredPrompt]);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      alert("Para instalar en este equipo: Toca los 3 puntos de Chrome y selecciona 'Instalar aplicación' o 'Agregar a la pantalla principal'.");
+      return;
+    }
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') setShowPrompt(false);
