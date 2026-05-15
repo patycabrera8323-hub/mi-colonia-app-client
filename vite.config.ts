@@ -47,8 +47,14 @@ export default defineConfig(({mode}) => {
             }
           ]
         },
+        workbox: {
+          swDest: 'sw.js',
+          skipWaiting: true,
+          clientsClaim: true,
+        },
         devOptions: {
-          enabled: true
+          enabled: true,
+          type: 'module'
         }
       })
     ],
