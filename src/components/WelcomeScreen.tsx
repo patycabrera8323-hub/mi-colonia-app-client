@@ -6,19 +6,19 @@ export function WelcomeScreen({ onComplete }: { onComplete: () => void }) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Verificar si ya se mostró antes
-    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome_MiColonia');
+    // Forzamos que se muestre de nuevo cambiando la versión de la clave
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome_MiColonia_v2');
     if (!hasSeenWelcome) {
-      setIsVisible(true);
+      setTimeout(() => setIsVisible(true), 100);
     } else {
       onComplete();
     }
   }, [onComplete]);
 
   const handleStart = () => {
-    localStorage.setItem('hasSeenWelcome_MiColonia', 'true');
+    localStorage.setItem('hasSeenWelcome_MiColonia_v2', 'true');
     setIsVisible(false);
-    setTimeout(onComplete, 500); // Dar tiempo a la animación de salida
+    setTimeout(onComplete, 400);
   };
 
   if (!isVisible) return null;
