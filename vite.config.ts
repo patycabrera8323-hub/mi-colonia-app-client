@@ -12,30 +12,36 @@ export default defineConfig(({mode}) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['logo.png', 'favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
+        includeAssets: ['icon-192.png', 'icon-512.png', 'icon-maskable.png', 'logo.png'],
         manifest: {
-          name: 'NegocioYa',
-          short_name: 'NegocioYa',
-          description: 'Tu colonia en un clic',
+          name: 'Mi Colonia',
+          short_name: 'MiColonia',
+          description: 'Negocios de tu colonia en un clic',
           theme_color: '#ea580c',
           background_color: '#ffffff',
           display: 'standalone',
+          orientation: 'portrait',
+          scope: '/',
+          start_url: '/',
+          lang: 'es',
           icons: [
             {
-              src: 'logo.png',
+              src: 'icon-192.png',
               sizes: '192x192',
-              type: 'image/png'
+              type: 'image/png',
+              purpose: 'any'
             },
             {
-              src: 'logo.png',
-              sizes: '512x512',
-              type: 'image/png'
-            },
-            {
-              src: 'logo.png',
+              src: 'icon-512.png',
               sizes: '512x512',
               type: 'image/png',
-              purpose: 'any maskable'
+              purpose: 'any'
+            },
+            {
+              src: 'icon-maskable.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable'
             }
           ]
         },
@@ -54,8 +60,23 @@ export default defineConfig(({mode}) => {
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâ€”file watching is disabled to prevent flickering during agent edits.
+      // Do not modify—file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Firebase separado en su propio chunk
+            'firebase-app':  ['firebase/app'],
+            'firebase-auth': ['firebase/auth'],
+            'firebase-firestore': ['firebase/firestore'],
+            'firebase-messaging': ['firebase/messaging'],
+            // React y librerías base
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          },
+        },
+      },
     },
   };
 });

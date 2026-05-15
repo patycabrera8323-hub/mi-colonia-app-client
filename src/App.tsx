@@ -120,15 +120,14 @@ export default function App() {
           
           if (oldData && oldData.status !== newData.status) {
             const statusLabels: Record<string, string> = {
-              confirmed: 'Confirmado',
-              accepted: 'Repartidor Asignado',
-              preparing: 'En Preparación',
-              on_route: 'En Camino',
-              delivered: '¡Entregado!',
-              cancelled: 'Cancelado'
+              on_route: '🛵 ¡Tu pedido ya va en camino!',
+              delivered: '✅ ¡Pedido Entregado! Gracias por tu compra',
+              cancelled: '✕ Tu pedido ha sido cancelado'
             };
-            const statusLabel = statusLabels[newData.status] || newData.status;
-            sendNotification(`📦 Pedido ${statusLabel}`, `Tu pedido de ${newData.storeName || 'la tienda'} ha cambiado a: ${statusLabel}`);
+            
+            if (statusLabels[newData.status]) {
+              sendNotification(statusLabels[newData.status], `Tienda: ${newData.storeName || 'Negocio'}`);
+            }
           }
         }
       });
