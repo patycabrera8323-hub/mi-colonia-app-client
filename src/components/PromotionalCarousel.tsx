@@ -24,14 +24,23 @@ export function PromotionalCarousel({ onBusinessSelect }: Props) {
   useEffect(() => {
     const q = query(
       collection(db, 'promotions'),
-      where('active', '==', true),
-      orderBy('createdAt', 'desc')
+      where('active', '==', true)
     );
     const unsub = onSnapshot(q, (snap) => {
       const data: Promotion[] = [];
       snap.forEach(d => data.push({ id: d.id, ...d.data() } as Promotion));
+      
+      // Sort in-memory by createdAt desc
+      data.sort((a: any, b: any) => {
+        const timeA = a.createdAt?.seconds || 0;
+        const timeB = b.createdAt?.seconds || 0;
+        return timeB - timeA;
+      });
+
       setPromotions(data);
       setCurrent(0);
+    }, (error) => {
+      console.error("Error al cargar promociones del carrusel:", error);
     });
     return () => unsub();
   }, []);
