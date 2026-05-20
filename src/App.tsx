@@ -19,7 +19,7 @@ import {
   increment
 } from 'firebase/firestore';
 import { db, auth } from './lib/firebase';
-import { Business, Product, Category, CartItem, Review } from './types';
+import { Business, Product, Category, CartItem, Review, Promotion } from './types';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { toast } from 'sonner';
 
@@ -46,6 +46,7 @@ export default function App() {
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [businessPromotions, setBusinessPromotions] = useState<Promotion[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -189,11 +190,12 @@ export default function App() {
     return () => unsubscribe();
   }, [user, isAdminModeActive]);
 
-  // Fetch products and reviews when business is selected
+  // Fetch products, reviews, and promotions when business is selected
   useEffect(() => {
     if (!selectedBusiness) {
       setProducts([]);
       setReviews([]);
+      setBusinessPromotions([]);
       return;
     }
 
@@ -220,9 +222,22 @@ export default function App() {
       console.error(error);
     });
 
+    const promotionsRef = query(
+      collection(db, 'promotions'),
+      where('businessId', '==', selectedBusiness.id),
+      where('active', '==', true)
+    );
+    const unsubPromotions = onSnapshot(promotionsRef, (snapshot) => {
+      const promoData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Promotion));
+      setBusinessPromotions(promoData);
+    }, (error) => {
+      console.error("Error fetching promotions for business:", error);
+    });
+
     return () => {
       unsubProducts();
       unsubReviews();
+      unsubPromotions();
     };
   }, [selectedBusiness]);
 
@@ -498,6 +513,7 @@ export default function App() {
             business={selectedBusiness}
             products={products}
             reviews={reviews}
+            promotions={businessPromotions}
             onClose={() => setSelectedBusiness(null)}
             onAddToCart={addToCart}
             onRemoveFromCart={removeFromCart}

@@ -47,4 +47,16 @@ export interface CartItem {
   quantity: number;
 }
 
+export interface Promotion {
+  id: string;
+  title: string;
+  description?: string;
+  price?: number | null;
+  imageUrl: string;
+  businessId?: string | null;
+  businessName?: string | null;
+  active: boolean;
+  createdAt?: any;
+}
+
 export type Category = 'Todos' | 'Comida' | 'Salud' | 'Retail' | 'Servicios';

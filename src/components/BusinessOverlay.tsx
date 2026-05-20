@@ -1,6 +1,6 @@
-import { ArrowLeft, Star, Clock, MapPin, Truck, ShoppingBag, X } from 'lucide-react';
+import { ArrowLeft, Star, Clock, MapPin, Truck, ShoppingBag, X, Sparkles, Plus, Minus } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Business, Product, Review } from '../types';
+import { Business, Product, Review, Promotion } from '../types';
 import { ProductCard } from './ProductCard';
 import { ReviewSection } from './ReviewSection';
 
@@ -8,6 +8,7 @@ interface BusinessOverlayProps {
   business: Business;
   products: Product[];
   reviews: Review[];
+  promotions: Promotion[];
   onClose: () => void;
   onAddToCart: (product: Product) => void;
   onRemoveFromCart: (productId: string) => void;
@@ -29,6 +30,7 @@ export function BusinessOverlay({
   business,
   products,
   reviews,
+  promotions,
   onClose,
   onAddToCart,
   onRemoveFromCart,
@@ -186,6 +188,108 @@ export function BusinessOverlay({
             RESEÑAS ({reviews.length})
           </button>
         </div>
+
+        {/* 🔥 Promociones Especiales */}
+        {promotions && promotions.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-xs font-black text-orange-600 uppercase tracking-widest mb-4 flex items-center gap-1.5 px-1">
+              <Sparkles className="w-4 h-4 text-orange-500 animate-pulse animate-duration-1000" /> Promociones Especiales
+            </h3>
+            
+            <div className="flex gap-4 overflow-x-auto pb-4 pt-1 snap-x scrollbar-hide">
+              {promotions.map((promo) => {
+                const promoQty = getItemQuantity(`promo_${promo.id}`);
+                const hasPrice = promo.price !== undefined && promo.price !== null && promo.price > 0;
+                
+                return (
+                  <div 
+                    key={promo.id} 
+                    className="w-72 bg-white rounded-3xl border border-neutral-200/50 shadow-sm shrink-0 snap-start overflow-hidden flex flex-col group hover:border-orange-200 transition-all duration-300"
+                  >
+                    {/* Banner Image */}
+                    <div className="w-full h-32 bg-neutral-100 overflow-hidden relative">
+                      <img 
+                        src={promo.imageUrl} 
+                        alt={promo.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        referrerPolicy="no-referrer"
+                      />
+                      {hasPrice && (
+                        <div className="absolute top-3 right-3 bg-neutral-900/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-2xl text-[10px] font-black tracking-tight shadow-md">
+                          ${promo.price?.toLocaleString()}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-4 flex-1 flex flex-col justify-between gap-3">
+                      <div>
+                        <h4 className="text-xs font-black text-neutral-900 line-clamp-1 uppercase tracking-tight">
+                          {promo.title}
+                        </h4>
+                        {promo.description && (
+                          <p className="text-[10px] text-neutral-500 font-medium line-clamp-2 mt-1 leading-snug">
+                            {promo.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Add to Cart button */}
+                      {hasPrice && (
+                        <div className="flex items-center justify-between mt-1 pt-1 border-t border-neutral-50">
+                          <span className="text-[10px] uppercase font-black text-neutral-400 tracking-wider">¿Ordenar?</span>
+                          
+                          {promoQty > 0 ? (
+                            <div className="flex items-center bg-neutral-100 rounded-xl p-0.5 gap-2 border border-neutral-200/50">
+                              <button 
+                                onClick={() => onRemoveFromCart(`promo_${promo.id}`)}
+                                className="w-7 h-7 flex items-center justify-center rounded-lg bg-white text-orange-600 shadow-sm active:scale-90"
+                              >
+                                <Minus className="w-3.5 h-3.5" />
+                              </button>
+                              <span className="text-xs font-black min-w-[16px] text-center">
+                                {promoQty}
+                              </span>
+                              <button 
+                                disabled={!business.isOpen}
+                                onClick={() => onAddToCart({
+                                  id: `promo_${promo.id}`,
+                                  name: `[PROMO] ${promo.title}`,
+                                  description: promo.description || 'Promoción especial',
+                                  price: promo.price || 0,
+                                  imageUrl: promo.imageUrl,
+                                  isAvailable: true
+                                })}
+                                className="w-7 h-7 flex items-center justify-center rounded-lg bg-orange-600 text-white shadow-sm active:scale-90 disabled:opacity-50"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              disabled={!business.isOpen}
+                              onClick={() => onAddToCart({
+                                id: `promo_${promo.id}`,
+                                name: `[PROMO] ${promo.title}`,
+                                description: promo.description || 'Promoción especial',
+                                price: promo.price || 0,
+                                imageUrl: promo.imageUrl,
+                                isAvailable: true
+                              })}
+                              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white text-[10px] font-black uppercase tracking-wider rounded-xl shadow-md active:scale-95 transition-all"
+                            >
+                              Agregar
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
         
         <div className="grid gap-4 mb-12">
           {products.length === 0 ? (
