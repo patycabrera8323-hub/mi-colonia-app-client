@@ -46,4 +46,4 @@ export interface CartItem {
   quantity: number;
 }
 
-export type Category = 'Todos' | 'Comida' | 'Salud' | 'Retail' | 'Servicio';
+export type Category = 'Todos' | 'Comida' | 'Salud' | 'Retail' | 'Servicios';

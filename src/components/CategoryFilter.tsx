@@ -12,7 +12,7 @@ const CATEGORIES: { name: Category; icon: any; color: string }[] = [
   { name: 'Comida', icon: UtensilsCrossed, color: 'bg-pink-500' },
   { name: 'Salud', icon: HeartPulse, color: 'bg-orange-600' },
   { name: 'Retail', icon: ShoppingBag, color: 'bg-blue-600' },
-  { name: 'Servicio', icon: Wrench, color: 'bg-cyan-600' },
+  { name: 'Servicios', icon: Wrench, color: 'bg-cyan-600' },
 ];
 
 interface CategoryFilterProps {
