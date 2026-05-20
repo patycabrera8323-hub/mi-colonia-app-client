@@ -5,6 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="/logo.png?v=2" />
     <title>Mi Colonia</title>
+    <script>
+      // Si algún asset falla al cargar (como un CSS o JS obsoleto debido al caché del Service Worker),
+      // limpiamos los service workers y recargamos para forzar la obtención de los nuevos archivos.
+      window.addEventListener('error', function(e) {
+        if (e.target && (e.target.tagName === 'LINK' || e.target.tagName === 'SCRIPT')) {
+          console.warn('Falla de carga de asset detectada. Limpiando SW y recargando...');
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+              for (var i = 0; i < registrations.length; i++) {
+                registrations[i].unregister();
+              }
+              window.location.reload(true);
+            });
+          }
+        }
+      }, true);
+    </script>
   </head>
   <body>
     <div id="root"></div>
