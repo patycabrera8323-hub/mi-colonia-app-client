@@ -290,6 +290,15 @@ export function BusinessOverlay({
             </div>
           </div>
         )}
+
+        {promotions && promotions.length > 0 && (
+          <div className="pt-2 pb-1 border-t border-neutral-100/70 mb-6 mt-4 flex items-center justify-between">
+            <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest pl-1 shrink-0">
+              📦 Menú de Productos
+            </span>
+            <div className="flex-grow border-t border-neutral-100/70 ml-4"></div>
+          </div>
+        )}
         
         <div className="grid gap-4 mb-12">
           {products.length === 0 ? (
