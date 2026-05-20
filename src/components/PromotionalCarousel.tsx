@@ -21,6 +21,8 @@ export function PromotionalCarousel({ onBusinessSelect }: Props) {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [current, setCurrent] = useState(0);
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const q = query(
       collection(db, 'promotions'),
@@ -30,17 +32,20 @@ export function PromotionalCarousel({ onBusinessSelect }: Props) {
       const data: Promotion[] = [];
       snap.forEach(d => data.push({ id: d.id, ...d.data() } as Promotion));
       
-      // Sort in-memory by createdAt desc
+      // Sort in-memory by createdAt desc (compatible con Firestore Timestamp y número)
       data.sort((a: any, b: any) => {
-        const timeA = a.createdAt?.seconds || 0;
-        const timeB = b.createdAt?.seconds || 0;
+        const timeA = a.createdAt?.seconds ?? a.createdAt ?? 0;
+        const timeB = b.createdAt?.seconds ?? b.createdAt ?? 0;
         return timeB - timeA;
       });
 
+      console.log('[Carrusel] Promociones activas cargadas:', data.length, data.map(p => p.title));
       setPromotions(data);
       setCurrent(0);
+      setLoading(false);
     }, (error) => {
       console.error("Error al cargar promociones del carrusel:", error);
+      setLoading(false);
     });
     return () => unsub();
   }, []);
@@ -53,6 +58,14 @@ export function PromotionalCarousel({ onBusinessSelect }: Props) {
     }, 4000);
     return () => clearInterval(timer);
   }, [promotions.length]);
+
+  if (loading) {
+    return (
+      <div className="w-full px-4 pt-2 pb-1">
+        <div className="w-full rounded-[1.5rem] overflow-hidden bg-neutral-200 animate-pulse" style={{ aspectRatio: '16/6' }} />
+      </div>
+    );
+  }
 
   if (promotions.length === 0) return null;
 
