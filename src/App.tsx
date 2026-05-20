@@ -535,16 +535,45 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-3xl p-6 w-full max-w-sm relative shadow-2xl"
+              className="bg-white rounded-3xl w-full max-w-sm relative shadow-2xl overflow-hidden"
             >
-              <button onClick={() => setIsProductModalOpen(false)} className="absolute top-4 right-4 text-neutral-400 hover:text-neutral-900"><X /></button>
-              <img src={selectedProduct.imageUrl || `https://picsum.photos/seed/${selectedProduct.id}/200`} className="w-full h-48 object-cover rounded-2xl mb-4" referrerPolicy="no-referrer" />
-              <h3 className="text-xl font-black text-neutral-900 mb-2">{selectedProduct.name}</h3>
-              <p className="text-sm font-bold text-neutral-400 mb-4">Visto {(products.find(p => p.id === selectedProduct.id)?.viewCount) || 0} veces</p>
-              <p className="text-neutral-500 mb-4 text-sm">{selectedProduct.description}</p>
-              <div className="flex items-center justify-between">
-                 <p className="text-lg font-black text-orange-600">${selectedProduct.price.toLocaleString()}</p>
-                 <button onClick={() => {addToCart(selectedProduct); setIsProductModalOpen(false);}} className="bg-orange-600 text-white py-2 px-6 rounded-2xl font-black text-sm">PEDIR</button>
+              <button onClick={() => setIsProductModalOpen(false)} className="absolute top-4 right-4 z-10 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-900 shadow-md"><X className="w-4 h-4" /></button>
+              
+              {/* 3D viewer or image */}
+              {selectedProduct.modelUrl ? (
+                <div className="w-full h-64 bg-neutral-50 relative">
+                  {/* @ts-ignore */}
+                  <model-viewer
+                    src={selectedProduct.modelUrl}
+                    alt={selectedProduct.name}
+                    auto-rotate
+                    camera-controls
+                    ar
+                    style={{ width: '100%', height: '100%', background: 'transparent' }}
+                  />
+                  <div className="absolute top-3 left-3 bg-orange-500 text-white text-[8px] font-black uppercase px-2 py-1 rounded-full tracking-widest flex items-center gap-1 shadow-lg">
+                    ✦ Vista 3D — Gira con tu dedo
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full h-56 bg-neutral-100 overflow-hidden">
+                  <img
+                    src={selectedProduct.imageUrl || `https://picsum.photos/seed/${selectedProduct.id}/400`}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
+                  />
+                </div>
+              )}
+
+              <div className="p-5">
+                <h3 className="text-xl font-black text-neutral-900 mb-1">{selectedProduct.name}</h3>
+                <p className="text-sm font-bold text-neutral-400 mb-3">Visto {(products.find(p => p.id === selectedProduct.id)?.viewCount) || 0} veces</p>
+                <p className="text-neutral-500 mb-5 text-sm leading-relaxed">{selectedProduct.description}</p>
+                <div className="flex items-center justify-between">
+                   <p className="text-2xl font-black text-orange-600">${selectedProduct.price.toLocaleString()}</p>
+                   <button onClick={() => {addToCart(selectedProduct); setIsProductModalOpen(false);}} className="bg-orange-600 text-white py-3 px-8 rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg shadow-orange-500/20">PEDIR</button>
+                </div>
               </div>
             </motion.div>
           </motion.div>

@@ -29,6 +29,7 @@ export interface Product {
   price: number;
   isAvailable: boolean;
   imageUrl: string;
+  modelUrl?: string;
   viewCount?: number;
 }
 

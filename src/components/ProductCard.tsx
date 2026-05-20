@@ -1,5 +1,6 @@
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus, Box } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useState } from 'react';
 import { Product } from '../types';
 
 interface ProductCardProps {
@@ -12,6 +13,8 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, quantity, isOpen, onAdd, onRemove, onSelect }: ProductCardProps) {
+  const [imgLoaded, setImgLoaded] = useState(false);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -19,15 +22,29 @@ export function ProductCard({ product, quantity, isOpen, onAdd, onRemove, onSele
       className="bg-white rounded-3xl p-3 shadow-sm border border-neutral-100 flex gap-4 items-start relative overflow-hidden transition-all duration-300"
     >
       <div 
-        className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 bg-neutral-50 shadow-inner cursor-pointer"
+        className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 bg-neutral-100 shadow-inner cursor-pointer relative"
         onClick={onSelect}
       >
+        {/* Skeleton shimmer while loading */}
+        {!imgLoaded && (
+          <div className="absolute inset-0 bg-gradient-to-r from-neutral-100 via-neutral-200 to-neutral-100 animate-pulse" />
+        )}
         <img 
           src={product.imageUrl || `https://picsum.photos/seed/${product.id}/200`} 
           alt={product.name}
-          className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
+          className={`w-full h-full object-cover transition-opacity duration-500 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
           referrerPolicy="no-referrer"
+          onLoad={() => setImgLoaded(true)}
         />
+        {/* 3D badge */}
+        {product.modelUrl && (
+          <div className="absolute bottom-1 right-1 bg-orange-500 text-white rounded-md px-1 py-0.5 flex items-center gap-0.5 shadow-lg">
+            <Box className="w-2.5 h-2.5" />
+            <span className="text-[7px] font-black uppercase">3D</span>
+          </div>
+        )}
       </div>
       <div className="flex-1 min-w-0 pt-0.5">
         <h4 className="text-sm font-black text-neutral-900 mb-0.5 truncate leading-tight uppercase tracking-tight">{product.name}</h4>
