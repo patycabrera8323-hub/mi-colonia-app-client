@@ -6,3 +6,8 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Service Worker generado localmente - NO subir al repo
+# Cloudflare Pages lo genera durante el build
+sw.js
+workbox-*.js
