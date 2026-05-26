@@ -34,6 +34,13 @@ import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { PromotionalCarousel } from './components/PromotionalCarousel';
 
+const SOUNDS = {
+  preparing: 'https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3',
+  on_route: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3',
+  delivered: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3',
+  default: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'
+};
+
 export default function App() {
   const [showWelcome, setShowWelcome] = useState(true);
   // Add a safety check for initialization
@@ -87,11 +94,12 @@ export default function App() {
   }, []);
 
   // Notification utility
-  const sendNotification = (title: string, body: string) => {
+  const sendNotification = (title: string, body: string, soundType?: 'preparing' | 'on_route' | 'delivered') => {
     if (!("Notification" in window) || Notification.permission !== "granted") return;
 
     try {
-      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+      const soundUrl = soundType ? SOUNDS[soundType] : SOUNDS.default;
+      const audio = new Audio(soundUrl);
       audio.volume = 0.5;
       audio.play().catch(() => {});
     } catch (ae) {}
@@ -124,14 +132,24 @@ export default function App() {
           const oldData = prevOrdersRef.current.find(o => o.id === change.doc.id);
           
           if (oldData && oldData.status !== newData.status) {
-            const statusLabels: Record<string, string> = {
-              on_route: '🛵 ¡Tu pedido ya va en camino!',
-              delivered: '✅ ¡Pedido Entregado! Gracias por tu compra',
-              cancelled: '✕ Tu pedido ha sido cancelado'
-            };
-            
-            if (statusLabels[newData.status]) {
-              sendNotification(statusLabels[newData.status], `Tienda: ${newData.storeName || 'Negocio'}`);
+            if (newData.status === 'confirmed' || newData.status === 'preparing') {
+              sendNotification(
+                '👨‍🍳 ¡Pedido Aceptado y Preparando!',
+                `Tienda: ${newData.storeName || 'Negocio'}`,
+                'preparing'
+              );
+            } else if (newData.status === 'on_route') {
+              sendNotification(
+                '🛵 ¡Finalizado en ruta o en camino!',
+                `Tienda: ${newData.storeName || 'Negocio'}`,
+                'on_route'
+              );
+            } else if (newData.status === 'delivered' || newData.status === 'completed') {
+              sendNotification(
+                '✅ ¡Pedido Entregado! Gracias por tu compra',
+                `Tienda: ${newData.storeName || 'Negocio'}`,
+                'delivered'
+              );
             }
           }
         }
