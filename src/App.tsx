@@ -36,6 +36,7 @@ import { PromotionalCarousel } from './components/PromotionalCarousel';
 
 const SOUNDS = {
   preparing: 'https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3',
+  accepted: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3',
   on_route: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3',
   delivered: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3',
   default: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'
@@ -94,7 +95,7 @@ export default function App() {
   }, []);
 
   // Notification utility
-  const sendNotification = (title: string, body: string, soundType?: 'preparing' | 'on_route' | 'delivered') => {
+  const sendNotification = (title: string, body: string, soundType?: 'preparing' | 'accepted' | 'on_route' | 'delivered') => {
     if (!("Notification" in window) || Notification.permission !== "granted") return;
 
     try {
@@ -134,20 +135,26 @@ export default function App() {
           if (oldData && oldData.status !== newData.status) {
             if (newData.status === 'confirmed' || newData.status === 'preparing') {
               sendNotification(
-                '👨‍🍳 ¡Pedido Aceptado y Preparando!',
-                `Tienda: ${newData.storeName || 'Negocio'}`,
+                '🔔 Cliente',
+                'Tu pedido fue aceptado',
                 'preparing'
+              );
+            } else if (newData.status === 'accepted') {
+              sendNotification(
+                '🔔 Cliente',
+                'Tu repartidor ya va por tu pedido',
+                'accepted'
               );
             } else if (newData.status === 'on_route') {
               sendNotification(
-                '🛵 ¡Finalizado en ruta o en camino!',
-                `Tienda: ${newData.storeName || 'Negocio'}`,
+                '🔔 Cliente',
+                'Tu pedido va en camino',
                 'on_route'
               );
             } else if (newData.status === 'delivered' || newData.status === 'completed') {
               sendNotification(
-                '✅ ¡Pedido Entregado! Gracias por tu compra',
-                `Tienda: ${newData.storeName || 'Negocio'}`,
+                '🔔 Cliente',
+                'Pedido entregado',
                 'delivered'
               );
             }
