@@ -28,7 +28,7 @@ export function CheckoutPanel({
   business
 }: CheckoutPanelProps) {
   const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-  const tipAmount = subtotal >= 100 ? subtotal * 0.18 : 15;
+  const tipAmount = subtotal >= 100 ? 25 : 20;
   const total = subtotal + tipAmount;
 
   return (

@@ -162,12 +162,18 @@ export default function App() {
         }
       });
 
+      const allOrders: OrderData[] = [];
       snapshot.forEach((doc) => {
-        ordersData.push({ id: doc.id, ...doc.data() } as OrderData);
+        allOrders.push({ id: doc.id, ...doc.data() } as OrderData);
       });
 
-      prevOrdersRef.current = ordersData;
-      setOrders(ordersData);
+      // Filter out delivered, completed, and cancelled orders from the UI
+      const activeOrders = allOrders.filter(
+        (o) => !['delivered', 'completed', 'cancelled'].includes(o.status)
+      );
+
+      prevOrdersRef.current = allOrders;
+      setOrders(activeOrders);
     });
 
     return () => unsubscribe();
@@ -282,7 +288,7 @@ export default function App() {
 
     const itemsList = cart.map(item => `*${item.quantity}x* ${item.product.name} (_$${item.product.price.toLocaleString()}_)`).join('\n');
     const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-    const tipAmount = subtotal >= 100 ? subtotal * 0.18 : 15;
+    const tipAmount = subtotal >= 100 ? 25 : 20;
     const total = subtotal + tipAmount;
     
     const message = `¡Hola! Me gustaría hacer un pedido en NegocioYa para *${business.name}*:\n\n${itemsList}\n\n*Dirección de entrega:* ${deliveryAddress}${orderNotes ? `\n*Notas:* ${orderNotes}` : ''}\n*Forma de pago:* ${paymentMethod}\n\n*Subtotal:* $${subtotal.toLocaleString()}\n*Propina (Repartidor):* $${tipAmount.toLocaleString()}\n━━━━━━━━━━━━━━\n*Total a pagar: $${total.toLocaleString()}*\n━━━━━━━━━━━━━━\n\n¿Me confirmarían el pedido?`;
@@ -419,7 +425,7 @@ export default function App() {
 
   const cartSubtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const cartTipAmount = cartSubtotal > 0 ? (cartSubtotal >= 100 ? cartSubtotal * 0.18 : 15) : 0;
+  const cartTipAmount = cartSubtotal > 0 ? (cartSubtotal >= 100 ? 25 : 20) : 0;
   const cartTotal = cartSubtotal + cartTipAmount;
 
   return (
