@@ -19,9 +19,9 @@ export function Header({ user, searchQuery, setSearchQuery, onLogin, onTitleClic
             onClick={onTitleClick}
             className="flex items-center gap-2 cursor-pointer select-none active:scale-95 transition-transform"
           >
-            <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
+            <img src="/logo.png" alt="Tu Colonia en un Click" className="w-9 h-9 object-contain rounded-lg" />
             <h1 className="text-xl font-black tracking-tight text-neutral-900">
-              NEGOCIO <span className="text-orange-600">YA</span>
+              Tu Colonia <span className="text-orange-600">en un Click</span>
             </h1>
           </div>
           {user ? (
